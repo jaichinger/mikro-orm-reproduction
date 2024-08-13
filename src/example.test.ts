@@ -1,4 +1,4 @@
-import { Entity, Filter, ManyToOne, MikroORM, PrimaryKey, Property } from '@mikro-orm/sqlite';
+import { Entity, Filter, ManyToOne, MikroORM, PrimaryKey, Property, Ref } from '@mikro-orm/sqlite';
 
 @Entity()
 @Filter({ name: 'soft-delete', default: true, cond: { deletedAt: { $eq: null } } })
@@ -25,8 +25,8 @@ class Submission {
   @Property()
   title!: string;
 
-  @ManyToOne(() => User)
-  user!: User;
+  @ManyToOne(() => User, { ref: true })
+  user!: Ref<User>;
 }
 
 let orm: MikroORM;
@@ -42,7 +42,10 @@ beforeAll(async () => {
 
   const userA = orm.em.create(User, { name: 'User A', email: 'foo' });
   const userB = orm.em.create(User, { name: 'User B', email: 'bar' });
-  const userC = orm.em.create(User, { name: 'User C', email: 'baz' });
+  const userC = orm.em.create(
+    User,
+    { name: 'User C', email: 'baz', deletedAt: new Date() }
+  );
 
   orm.em.create(Submission, { title: 'Submission A', user: userA });
   orm.em.create(Submission, { title: 'Submission B', user: userB });
@@ -59,22 +62,18 @@ beforeEach(async () => {
   orm.em.clear();
 });
 
-test('basic CRUD example', async () => {
-  const [subs, count] = await orm.em.findAndCount(Submission, {});
+afterEach(async () => {
+  orm.em.clear();
+});
 
+test('soft delete, user not populated', async () => {
+  const [subs, count] = await orm.em.findAndCount(Submission, {});
   expect(subs).toHaveLength(3);
   expect(count).toBe(3);
 });
 
-test('soft delete', async () => {
-  const user = await orm.em.findOneOrFail(User, { email: 'foo' });
-  user.deletedAt = new Date();
-  await orm.em.flush();
-
-  orm.em.clear();
-
-  const [subs, count] = await orm.em.findAndCount(Submission, {});
-
+test('soft delete, user populated', async () => {
+  const [subs, count] = await orm.em.findAndCount(Submission, {}, { populate: ['user'] });
   expect(subs).toHaveLength(2);
   expect(count).toBe(2);
 });
