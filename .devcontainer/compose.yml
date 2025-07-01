@@ -1,0 +1,19 @@
+services:
+  devcontainer:
+    build:
+      context: ..
+      dockerfile: .devcontainer/Dockerfile
+    volumes:
+      - ..:/home/node/workspace:cached
+    user: node
+    tty: true
+    depends_on:
+      - db
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_PASSWORD: example
+      PGDATA: "/var/lib/postgresql/data/pgdata"
+    volumes:
+      - "../.db-data:/var/lib/postgresql/data"
+      - "../shared:/var/shared"

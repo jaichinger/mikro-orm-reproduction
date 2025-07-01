@@ -4,3 +4,4 @@ sqlite.db
 dist
 temp
 package-lock.json
+.db-data
