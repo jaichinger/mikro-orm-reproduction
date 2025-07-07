@@ -9,7 +9,7 @@ import {
   Property,
   ref,
   Ref,
-} from "@mikro-orm/postgresql";
+} from "@mikro-orm/sqlite";
 
 @Entity()
 class Organisation {
@@ -136,13 +136,12 @@ let orm: MikroORM;
 
 beforeAll(async () => {
   orm = await MikroORM.init({
-    dbName: "postgres",
-    password: "example",
-    host: "db",
+    dbName: ':memory:',
     entities: [Organisation, User, Job, List, Pet, JobList],
     debug: ["query", "query-params"],
     allowGlobalContext: true, // only for testing
   });
+  
   await orm.schema.refreshDatabase();
 
   const organisation = orm.em.create(Organisation, { id: 1, name: "Org A" });
