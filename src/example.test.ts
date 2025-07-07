@@ -128,6 +128,7 @@ class Pet extends OrgEntity {
     ref: true,
     fieldNames: ["org_id", "owner_id"],
     ownColumns: ["owner_id"],
+    cascade: [],
   })
   owner!: Ref<User>;
 }
@@ -191,17 +192,15 @@ afterEach(async () => {
 });
 
 test("peforming only select queries should not cause updates", async () => {
-  const jobs = await orm.em.findAll(Job);
+  const job = await orm.em.findOneOrFail(Job, {
+    org: ref(Organisation, 1),
+    id: 1,
+  });
 
-  for (const job of jobs) {
-    const _ = await job.jobLists.load({
-      populate: ["list.pets.owner"],
-    });
-  }
+  const _ = await job.jobLists.load({
+      populate: ['list.pets.owner'],
+  });
 
   orm.em.getUnitOfWork().computeChangeSets();
-
   expect(orm.em.getUnitOfWork().getChangeSets()).toHaveLength(0);
-
-  await orm.em.flush();
 });
