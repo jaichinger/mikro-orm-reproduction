@@ -82,6 +82,7 @@ beforeAll(async () => {
     dbName: ':memory:',
     entities: [Organisation, Author, Book, OrgEntity],
     debug: ['query', 'query-params'],
+    allowGlobalContext: true, // for testing purposes
   });
 
   await orm.schema.refreshDatabase();
