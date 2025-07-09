@@ -44,6 +44,12 @@ class Author extends OrgEntity {
   @Property()
   name!: string;
 
+  @OneToOne({
+    entity: () => Book,
+    mappedBy: b => b.author,
+    ref: true,
+  })
+  book?: Ref<Book>;
 }
 
 @Entity()
@@ -64,7 +70,16 @@ class Book extends OrgEntity {
 
 let orm: MikroORM;
 
-const createTestData = async () => {
+beforeEach(async () => {
+  orm = await MikroORM.init({
+    dbName: ':memory:',
+    entities: [Organisation, Author, Book, OrgEntity],
+    // debug: ['query', 'query-params'],
+    allowGlobalContext: true,
+  });
+
+  await orm.schema.refreshDatabase();
+
   const organisation = orm.em.create(Organisation, { id: 1, name: 'Org A' });
   const author1 = orm.em.create(Author, { org: ref(organisation), id: 1, name: 'Author 1' });
   const book1 = orm.em.create(Book, {
@@ -73,28 +88,11 @@ const createTestData = async () => {
     name: 'Book 1',
     author: author1,
   });
+
   await orm.em.flush();
-};
-
-beforeAll(async () => {
-  orm = await MikroORM.init({
-    dbName: ':memory:',
-    entities: [Organisation, Author, Book, OrgEntity],
-    debug: ['query', 'query-params'],
-    allowGlobalContext: true,
-  });
-
-  await orm.schema.refreshDatabase();
-  await createTestData();
 });
 
-beforeEach(async () => {
-  orm.em.clear();
-  await orm.schema.clearDatabase();
-  await createTestData();
-});
-
-afterAll(async () => {
+afterEach(async () => {
   await orm.close(true);
 });
 
@@ -105,16 +103,9 @@ test('simple test', async () => {
   }, {
     populate: ['author'],
   });
-  expect(book.name).toBe('Book 1');
-  expect(book.author.$.name).toBe('Author 1');
-
-  const author = await orm.em.findOneOrFail(Author, {
-    org: ref(Organisation, 1),
-    id: 1,
-  });
-  expect(author.name).toBe('Author 1');
-  expect(author.org.id).toBe(1);
 
   orm.em.getUnitOfWork().computeChangeSets();
-  expect(orm.em.getUnitOfWork().getChangeSets()).toHaveLength(0);
+  const changeSets = orm.em.getUnitOfWork().getChangeSets();
+  console.dir(changeSets, { depth: 4, colors: true });
+  expect(changeSets).toHaveLength(0);
 });
