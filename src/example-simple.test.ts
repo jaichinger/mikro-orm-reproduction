@@ -52,7 +52,7 @@ class Book extends OrgEntity {
   @Property()
   name!: string;
 
-  @OneToOne({
+  @ManyToOne({
     entity: () => Author,
     fieldNames: ['org_id', 'author_id'],
     ownColumns: ['author_id'],
@@ -116,5 +116,7 @@ test('simple test', async () => {
   expect(author.org.id).toBe(1);
 
   orm.em.getUnitOfWork().computeChangeSets();
-  expect(orm.em.getUnitOfWork().getChangeSets()).toHaveLength(0);
+  const changeSets = orm.em.getUnitOfWork().getChangeSets();
+  console.dir(changeSets, { depth: 5, colors: true });
+  expect(changeSets).toHaveLength(0);
 });
