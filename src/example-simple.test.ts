@@ -52,7 +52,7 @@ class Book extends OrgEntity {
   @Property()
   name!: string;
 
-  @ManyToOne({
+  @OneToOne({
     entity: () => Author,
     fieldNames: ['org_id', 'author_id'],
     ownColumns: ['author_id'],
@@ -66,12 +66,11 @@ let orm: MikroORM;
 
 const createTestData = async () => {
   const organisation = orm.em.create(Organisation, { id: 1, name: 'Org A' });
-
-  const author1 = orm.em.create(Author, { id: 1, name: 'Author 1', org: ref(organisation) });
+  const author1 = orm.em.create(Author, { org: ref(organisation), id: 1, name: 'Author 1' });
   const book1 = orm.em.create(Book, {
+    org: ref(organisation),
     id: 1,
     name: 'Book 1',
-    org: ref(organisation),
     author: ref(author1),
   });
   await orm.em.flush();
@@ -82,10 +81,11 @@ beforeAll(async () => {
     dbName: ':memory:',
     entities: [Organisation, Author, Book, OrgEntity],
     debug: ['query', 'query-params'],
-    allowGlobalContext: true, // for testing purposes
+    allowGlobalContext: true,
   });
 
   await orm.schema.refreshDatabase();
+  await createTestData();
 });
 
 beforeEach(async () => {
@@ -116,7 +116,5 @@ test('simple test', async () => {
   expect(author.org.id).toBe(1);
 
   orm.em.getUnitOfWork().computeChangeSets();
-  const changeSets = orm.em.getUnitOfWork().getChangeSets();
-  console.dir(changeSets, { depth: 5, colors: true });
-  expect(changeSets).toHaveLength(0);
+  expect(orm.em.getUnitOfWork().getChangeSets()).toHaveLength(0);
 });
