@@ -68,10 +68,10 @@ const createTestData = async () => {
   const organisation = orm.em.create(Organisation, { id: 1, name: 'Org A' });
   const author1 = orm.em.create(Author, { org: ref(organisation), id: 1, name: 'Author 1' });
   const book1 = orm.em.create(Book, {
-    org: ref(organisation),
+    org: organisation,
     id: 1,
     name: 'Book 1',
-    author: ref(author1),
+    author: author1,
   });
   await orm.em.flush();
 };
