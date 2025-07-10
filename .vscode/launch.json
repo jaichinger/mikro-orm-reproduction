@@ -11,13 +11,14 @@
         "run-script",
         "test",
         "--",
-        "src/unexpected-updates.test.ts"
+        "src/example-simple.test.ts"
       ],
       "runtimeExecutable": "npm",
       "skipFiles": ["<node_internals>/**"],
       "type": "node",
       "sourceMaps": true,
-      "pauseForSourceMap": true
+      "pauseForSourceMap": true,
+      "console": "integratedTerminal"
     }
   ]
 }

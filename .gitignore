@@ -5,3 +5,4 @@ dist
 temp
 package-lock.json
 .db-data
+testdb
