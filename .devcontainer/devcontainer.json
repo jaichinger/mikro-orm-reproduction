@@ -5,5 +5,12 @@
   "remoteUser": "node",
   "service": "devcontainer",
   "workspaceFolder": "/home/node/workspace",
-  "shutdownAction": "stopCompose"
+  "shutdownAction": "stopCompose",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "firsttris.vscode-jest-runner"
+      ]
+    }
+  }
 }

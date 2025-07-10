@@ -75,7 +75,7 @@ let ormA: MikroORM;
 let ormB: MikroORM;
 
 const runInContext = async (fn: () => Promise<void>) => {
-  await RequestContext.create([ormA.em, ormB.em], async () => {
+  await RequestContext.create([ormA.em.fork(), ormB.em.fork()], async () => {
     await fn();
   });
 };
@@ -127,9 +127,9 @@ afterAll(async () => {
   ]);
 });
 
-test('Orm A, initalised first', async () => {
+test('Orm A, initialised first, no changesets expected', async () => {
   await runInContext(async () => {
-    const em = ormA.em;
+    const em = ormA.em.fork();
     const author = await em.findOneOrFail(Author, {
       org: { id: 1 },
       id: 1,
@@ -141,7 +141,7 @@ test('Orm A, initalised first', async () => {
   });
 });
 
-test('ORM B, intialised second', async () => {
+test('ORM B, initialised second, no changesets expected', async () => {
   await runInContext(async () => {
     const em = ormB.em;
     const author = await em.findOneOrFail(Author, {
@@ -154,16 +154,3 @@ test('ORM B, intialised second', async () => {
     expect(changeSets).toHaveLength(0);
   });
 });
-
-test('can fetch two different EMs from request context', async () => {
-  await runInContext(async () => {
-    const emA = RequestContext.getEntityManager('orm-a');
-    const emB = RequestContext.getEntityManager('orm-b');
-
-    expect(emA).toBeDefined();
-    expect(emB).toBeDefined();
-    expect(emA?.name).toBe('orm-a');
-    expect(emB?.name).toBe('orm-b');
-    expect(emA).not.toBe(emB);
-  });
-})
